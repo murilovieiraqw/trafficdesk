@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrafficDesk — Gestão de Tráfego</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c10;--bg2:#111318;--bg3:#181b22;--bg4:#1f2330;--bg5:#252a38;
+  --brd:rgba(255,255,255,0.06);--brd2:rgba(255,255,255,0.12);--brd3:rgba(255,255,255,0.2);
+  --txt:#eeeef0;--txt2:#8a8f9e;--txt3:#4a4f60;
+  --blue:#3b82f6;--blue2:#1d4ed8;
+  --green:#22c55e;--green2:#15803d;
+  --red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--teal:#14b8a6;
+  --icaro:#3b82f6;--fernanda:#a855f7;--chama:#f97316;
+  --r:10px;--r2:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:14px;line-height:1.5}
+.shell{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:22px 20px 16px;border-bottom:1px solid var(--brd)}
+.logo-name{font-size:15px;font-weight:700;letter-spacing:-0.03em}
+.logo-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+.nav-sec{padding:16px 14px 4px;font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em}
+.nav-a{display:flex;align-items:center;gap:10px;padding:9px 10px;margin:1px 8px;border-radius:8px;font-size:13px;color:var(--txt2);cursor:pointer;transition:all .15s;user-select:none}
+.nav-a:hover{background:var(--bg3);color:var(--txt)}
+.nav-a.on{background:var(--bg4);color:var(--txt);font-weight:500}
+.nav-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.d-i{background:var(--icaro)}.d-f{background:var(--fernanda)}.d-c{background:var(--chama)}.d-o{background:var(--green)}
+.sidebar-foot{margin-top:auto;padding:14px;border-top:1px solid var(--brd)}
+
+/* CONTENT */
+.content{flex:1;padding:30px 36px;min-height:100vh;overflow-x:hidden}
+.panel{display:none}.panel.on{display:block}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.topbar h2{font-size:22px;font-weight:700;letter-spacing:-0.04em}
+.topbar p{font-size:13px;color:var(--txt2);margin-top:2px}
+.topbar-acts{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;border:1px solid var(--brd2);background:var(--bg3);color:var(--txt);cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--bg4);border-color:var(--brd3)}
+.btn-p{background:var(--blue);border-color:var(--blue);color:#fff}.btn-p:hover{background:var(--blue2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* MONTH SELECTOR */
+.month-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:22px;flex-wrap:wrap}
+.month-bar label{font-size:12px;color:var(--txt2);font-weight:500}
+.month-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mtab{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--brd2);color:var(--txt2);cursor:pointer;transition:all .15s;background:transparent}
+.mtab:hover{background:var(--bg3);color:var(--txt)}
+.mtab.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.mtab.has-data{border-color:var(--green2);color:var(--green)}
+.mtab.on.has-data{background:var(--green2);border-color:var(--green2);color:#fff}
+.month-sum{font-size:11px;color:var(--txt3);margin-left:auto;white-space:nowrap}
+
+/* SECTION HEADER */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:22px}
+.sh:first-of-type{margin-top:0}
+.sh-t{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.09em;white-space:nowrap}
+.sh-l{flex:1;height:1px;background:var(--brd)}
+
+/* MAIN TABLE */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:4px}
+.mtbl{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+.mtbl thead th{
+  padding:9px 10px;font-size:10px;font-weight:700;color:var(--txt3);
+  text-transform:uppercase;letter-spacing:.07em;text-align:right;
+  white-space:nowrap;background:var(--bg3);position:sticky;top:0;z-index:2;
+  border-bottom:1px solid var(--brd2);
+}
+.mtbl thead th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--bg3)}
+.mtbl thead th.sec-start{border-left:2px solid var(--brd2)}
+.mtbl tbody tr:hover td{background:rgba(59,130,246,.06)}
+.mtbl tbody tr.today td{background:rgba(59,130,246,.08)}
+.mtbl tbody tr.today td:first-child{color:var(--blue);font-weight:600}
+.mtbl td{
+  padding:0;border-bottom:1px solid var(--brd);text-align:right;
+  vertical-align:middle;
+}
+.mtbl td:first-child{
+  text-align:left;position:sticky;left:0;background:var(--bg2);
+  z-index:1;border-right:1px solid var(--brd2);padding:0 12px;
+  font-size:12px;color:var(--txt2);white-space:nowrap;height:40px;
+  cursor:pointer;
+}
+.mtbl td:first-child:hover{color:var(--blue)}
+.mtbl td.sec-start{border-left:2px solid var(--brd2)}
+.cell-inp{
+  width:100%;height:40px;background:transparent;border:none;
+  font-size:12px;font-family:'DM Mono',monospace;font-weight:400;
+  color:var(--txt);text-align:right;outline:none;padding:0 10px;
+  transition:background .15s;
+}
+.cell-inp:focus{background:rgba(59,130,246,.12)}
+.cell-inp::placeholder{color:var(--txt3)}
+.cell-calc{
+  padding:0 10px;height:40px;display:flex;align-items:center;
+  justify-content:flex-end;font-family:'DM Mono',monospace;font-size:12px;
+  color:var(--txt2);white-space:nowrap;
+}
+.cell-calc.good{color:var(--green)}
+.cell-calc.bad{color:var(--red)}
+.cell-calc.warn{color:var(--amber)}
+
+/* TOTALS ROW */
+.mtbl tfoot td{
+  padding:0;border-top:2px solid var(--brd2);font-weight:600;
+  background:var(--bg3);
+}
+.mtbl tfoot td:first-child{position:sticky;left:0;background:var(--bg3);padding:0 12px;height:38px;font-size:12px;color:var(--txt2)}
+.mtbl tfoot .cell-calc{color:var(--txt);font-weight:600}
+
+/* SUMMARY STRIP */
+.summary-strip{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:10px;margin-bottom:4px;
+}
+.scard{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:14px 15px}
+.scard-lbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.scard-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-0.02em;color:var(--txt)}
+.scard-val.g{color:var(--green)}.scard-val.r{color:var(--red)}.scard-val.a{color:var(--amber)}
+.scard-sub{font-size:10px;color:var(--txt3);margin-top:3px}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+.kcol{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:12px;min-height:200px;display:flex;flex-direction:column}
+.kcol-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kcol-title{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.kcol-cnt{font-size:10px;background:var(--bg4);border:1px solid var(--brd);border-radius:10px;padding:2px 7px;color:var(--txt2);font-family:'DM Mono',monospace}
+.kcol-body{flex:1;display:flex;flex-direction:column;gap:6px}
+.kcard{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:9px 10px}
+.kcard:hover{border-color:var(--brd2)}
+.kcard-txt{font-size:12px;color:var(--txt);line-height:1.4;margin-bottom:6px}
+.kcard-meta{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
+.kcard-acts{display:flex;gap:3px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.t-me{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25)}
+.t-lacherin{background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.22)}
+.t-ambos{background:rgba(168,85,247,.13);color:#c084fc;border:1px solid rgba(168,85,247,.22)}
+.t-trafego{background:rgba(59,130,246,.1);color:#93c5fd;border:1px solid rgba(59,130,246,.18)}
+.t-criativo{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.18)}
+.t-funil{background:rgba(20,184,166,.1);color:#2dd4bf;border:1px solid rgba(20,184,166,.18)}
+.t-escala{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.18)}
+.t-headline{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.2)}
+.t-fechamento{background:rgba(168,85,247,.1);color:#c084fc;border:1px solid rgba(168,85,247,.18)}
+.t-analise{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.18)}
+.cbtn{font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--brd);background:var(--bg4);color:var(--txt2);cursor:pointer;font-family:inherit;transition:all .12s}
+.cbtn:hover{background:var(--bg5);color:var(--txt)}
+.cbtn-del{color:var(--red)}.cbtn-del:hover{background:rgba(239,68,68,.1)}
+.add-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.add-inp{flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--brd2);color:var(--txt);padding:8px 12px;border-radius:var(--r);font-size:13px;font-family:inherit;outline:none}
+.add-inp:focus{border-color:var(--blue)}
+.add-inp::placeholder{color:var(--txt3)}
+.add-sel{background:var(--bg3);border:1px solid var(--brd2);color:var(--txt);padding:8px 10px;border-radius:var(--r);font-size:12px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark}
+
+/* OVERVIEW */
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
+.ov-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px 18px}
+.ov-top{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.ov-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ov-nm{font-size:14px;font-weight:600;letter-spacing:-0.02em}
+.ov-kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ov-kpi-lbl{font-size:10px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.ov-kpi-val{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;margin-top:1px}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--brd3);color:var(--txt);padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:999;transform:translateY(70px);opacity:0;transition:all .28s ease;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--green2);color:var(--green)}
+
+/* RESPONSIVE */
+@media(max-width:960px){.sidebar{display:none}.content{padding:16px}.kanban{grid-template-columns:repeat(2,1fr)}.ov-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.kanban{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-name">TrafficDesk</div>
+    <div class="logo-sub">Gestão diária de tráfego</div>
+  </div>
+  <div class="nav-sec">Projetos</div>
+  <div class="nav-a on" onclick="go('icaro',this)"><div class="nav-dot d-i"></div>Projeto Ícaro</div>
+  <div class="nav-a" onclick="go('fernanda',this)"><div class="nav-dot d-f"></div>Projeto Fernanda</div>
+  <div class="nav-a" onclick="go('chama',this)"><div class="nav-dot d-c"></div>Projeto Chama</div>
+  <div class="nav-sec" style="margin-top:6px;">Geral</div>
+  <div class="nav-a" onclick="go('overview',this)"><span style="font-size:13px;width:18px;text-align:center;">◈</span>Visão geral</div>
+  <div class="sidebar-foot">
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);background:var(--bg3);">
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--blue2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">EU</div>
+      <div>
+        <div style="font-size:12px;font-weight:500;">Você</div>
+        <div style="font-size:10px;color:var(--txt3);">Gestor de tráfego</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ CONTENT ═══ -->
+<main class="content">
+
+<!-- PROJETO PANELS (gerados via JS) -->
+<div class="panel on" id="p-icaro"></div>
+<div class="panel" id="p-fernanda"></div>
+<div class="panel" id="p-chama"></div>
+
+<!-- OVERVIEW -->
+<div class="panel" id="p-overview">
+  <div class="topbar">
+    <div><h2>Visão geral</h2><p id="ov-lbl">Comparativo dos três projetos — mês atual</p></div>
+  </div>
+  <div class="sh"><div class="sh-t">📊 Resumo do mês atual</div><div class="sh-l"></div></div>
+  <div class="ov-grid" id="ov-cards"></div>
+  <div class="sh"><div class="sh-t">🎯 Funil comparativo</div><div class="sh-l"></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px;" id="ov-funnels"></div>
+  <div class="sh"><div class="sh-t">✅ Tasks abertas</div><div class="sh-l"></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="ov-tasks"></div>
+</div>
+
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════════
+const PROJS = ['icaro','fernanda','chama'];
+const PROJ_COLOR = {icaro:'#3b82f6',fernanda:'#a855f7',chama:'#f97316'};
+const PROJ_LABEL = {icaro:'Ícaro',fernanda:'Fernanda',chama:'Chama'};
+const DIAS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+// Colunas de tráfego (input manual)
+const COLS_TRAFEGO = [
+  {key:'investimento', lbl:'Investimento (R$)', pfx:'R$'},
+  {key:'impressoes',   lbl:'Impressões',        pfx:''},
+  {key:'cliques',      lbl:'Cliques',           pfx:''},
+  {key:'pageview',     lbl:'Pageviews',         pfx:''},
+  {key:'checkout',     lbl:'Checkouts',         pfx:''},
+  {key:'vendas',       lbl:'Vendas (MSL)',       pfx:''},
+];
+
+// Colunas de funil VSL (input manual)
+const COLS_FUNIL = [
+  {key:'play_rate',  lbl:'Play Rate (%)',         pfx:'%', bench:55},
+  {key:'retencao',   lbl:'Retenção Pitch (%)',    pfx:'%', bench:35},
+  {key:'conv_vsl',   lbl:'Conv. VSL (%)',         pfx:'%', bench:8},
+  {key:'conv_ck',    lbl:'Conv. Checkout (%)',    pfx:'%', bench:65},
+];
+
+// Colunas calculadas automaticamente
+const COLS_CALC = [
+  {key:'ctr',   lbl:'CTR (%)',    fn:(d)=> d.cliques&&d.impressoes ? (d.cliques/d.impressoes*100).toFixed(2)+'%' : '—'},
+  {key:'cpc',   lbl:'CPC (R$)',   fn:(d)=> d.investimento&&d.cliques ? 'R$'+(d.investimento/d.cliques).toFixed(2) : '—'},
+  {key:'cpm',   lbl:'CPM (R$)',   fn:(d)=> d.investimento&&d.impressoes ? 'R$'+(d.investimento/d.impressoes*1000).toFixed(2) : '—'},
+  {key:'cpi',   lbl:'CPI (R$)',   fn:(d)=> d.investimento&&d.checkout ? 'R$'+(d.investimento/d.checkout).toFixed(2) : '—'},
+  {key:'cpa',   lbl:'CPA (R$)',   fn:(d)=> d.investimento&&d.vendas ? 'R$'+(d.investimento/d.vendas).toFixed(2) : '—'},
+  {key:'roas',  lbl:'ROAS',       fn:(d)=> d.faturamento&&d.investimento ? (d.faturamento/d.investimento).toFixed(2)+'x' : '—'},
+  {key:'roi',   lbl:'ROI (%)',    fn:(d)=> d.faturamento&&d.investimento ? ((d.faturamento-d.investimento)/d.investimento*100).toFixed(1)+'%' : '—'},
+];
+
+// Coluna de resultados (input manual)
+const COLS_RESULTADO = [
+  {key:'faturamento', lbl:'Faturamento (R$)', pfx:'R$'},
+  {key:'lucro',       lbl:'Lucro (R$)',        pfx:'R$'},
+];
+
+const KCOLS = ['A fazer','Em andamento','Concluído','Fechado'];
+const OWNER_LBL = {me:'Eu',lacherin:'Lacherin',ambos:'Ambos'};
+
+// ══════════════════════════════════════════════════════════════
+//  STATE   S[proj].months['2025-04'][day] = { ...métricas }
+//          S[proj].tasks = [...]
+// ══════════════════════════════════════════════════════════════
+let S = {
+  icaro:    {months:{}, tasks:[]},
+  fernanda: {months:{}, tasks:[]},
+  chama:    {months:{}, tasks:[]},
+};
+
+const UI = {
+  icaro:    {ym: curYM()},
+  fernanda: {ym: curYM()},
+  chama:    {ym: curYM()},
+};
+
+function curYM(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function curDay(){ const d=new Date(); return d.getDate(); }
+function daysInMonth(ym){ const [y,m]=ym.split('-').map(Number); return new Date(y,m,0).getDate(); }
+function ymLabel(ym){ const [y,m]=ym.split('-').map(Number); return `${MESES_PT[m-1]} ${y}`; }
+function dayDow(ym,d){ const [y,m]=ym.split('-').map(Number); return new Date(y,m-1,d).getDay(); }
+
+function loadState(){ try{ const r=localStorage.getItem('td_v4'); if(r) S=JSON.parse(r); }catch(e){} }
+function saveState(){ localStorage.setItem('td_v4', JSON.stringify(S)); }
+
+function getDay(proj,ym,d){ return (S[proj].months[ym]||{})[d]||{}; }
+function setDay(proj,ym,d,key,val){
+  if(!S[proj].months[ym]) S[proj].months[ym]={};
+  if(!S[proj].months[ym][d]) S[proj].months[ym][d]={};
+  S[proj].months[ym][d][key]=val;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ══════════════════════════════════════════════════════════════
+function go(proj,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-a').forEach(n=>n.classList.remove('on'));
+  document.getElementById('p-'+proj).classList.add('on');
+  el.classList.add('on');
+  if(proj==='overview') renderOverview();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BUILD PANEL
+// ══════════════════════════════════════════════════════════════
+function buildPanel(proj){
+  const lbl=PROJ_LABEL[proj];
+  const dot=PROJ_COLOR[proj];
+  const el=document.getElementById('p-'+proj);
+  el.innerHTML=`
+    <div class="topbar">
+      <div>
+        <h2 style="display:flex;align-items:center;gap:10px;">
+          <span style="width:12px;height:12px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>
+          Projeto ${lbl}
+        </h2>
+        <p>Preencha diariamente — selecione o mês para navegar</p>
+      </div>
+      <div class="topbar-acts">
+        <button class="btn btn-p" onclick="salvarTudo('${proj}')">💾 Salvar tudo</button>
+      </div>
+    </div>
+
+    <!-- MONTH TABS -->
+    <div class="month-bar">
+      <label>Mês:</label>
+      <div class="month-tabs" id="mtabs-${proj}"></div>
+      <div class="month-sum" id="msum-${proj}"></div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="sh"><div class="sh-t">📊 Resumo do mês — médias e totais</div><div class="sh-l"></div></div>
+    <div class="summary-strip" id="strip-${proj}"></div>
+
+    <!-- TASKS -->
+    <div class="sh"><div class="sh-t">✅ Tasks da semana</div><div class="sh-l"></div></div>
+    <div class="kanban" id="kb-${proj}"></div>
+
+    <!-- TABELA TRÁFEGO -->
+    <div class="sh"><div class="sh-t">📈 Métricas de tráfego — preenchimento diário</div><div class="sh-l"></div></div>
+    <div class="tbl-wrap"><table class="mtbl" id="tbl-trafego-${proj}"></table></div>
+
+    <!-- TABELA FUNIL -->
+    <div class="sh"><div class="sh-t">🎯 Funil VSL — preenchimento diário</div><div class="sh-l"></div></div>
+    <div class="tbl-wrap"><table class="mtbl" id="tbl-funil-${proj}"></table></div>
+    <div class="add-row">
+      <input class="add-inp" id="ti-${proj}" placeholder="Descreva a task...">
+      <select class="add-sel" id="to-${proj}">
+        <option value="me">👤 Eu</option>
+        <option value="lacherin">👤 Lacherin</option>
+        <option value="ambos">👥 Ambos</option>
+      </select>
+      <select class="add-sel" id="tf-${proj}">
+        <option value="trafego">🔵 Tráfego</option>
+        <option value="criativo">🟡 Criativo</option>
+        <option value="funil">🟢 Funil</option>
+        <option value="escala">📈 Escala</option>
+        <option value="headline">🟠 Headline</option>
+        <option value="fechamento">🟣 Fechamento</option>
+        <option value="analise">🔴 Análise</option>
+      </select>
+      <button class="btn btn-p" onclick="addTask('${proj}')">+ Task</button>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER MONTH TABS
+// ══════════════════════════════════════════════════════════════
+function renderMonthTabs(proj){
+  const el=document.getElementById('mtabs-'+proj);
+  const tabs=[];
+  // Abril 2026 em diante — 18 meses
+  const start=new Date(2026,3,1);
+  for(let i=0;i<18;i++){
+    const d=new Date(start.getFullYear(),start.getMonth()+i,1);
+    const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    tabs.push(ym);
+  }
+
+  el.innerHTML=tabs.map(ym=>{
+    const hasData=S[proj].months[ym]&&Object.keys(S[proj].months[ym]).length>0;
+    const isCur=ym===UI[proj].ym;
+    const [y,m]=ym.split('-').map(Number);
+    let cls='mtab';
+    if(isCur) cls+=' on';
+    if(hasData) cls+=' has-data';
+    return `<div class="${cls}" onclick="selectMonth('${proj}','${ym}')">${MESES_SHORT[m-1]} ${y}</div>`;
+  }).join('');
+}
+
+function selectMonth(proj,ym){
+  UI[proj].ym=ym;
+  renderProjectPanel(proj);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER FULL PROJECT PANEL
+// ══════════════════════════════════════════════════════════════
+function renderProjectPanel(proj){
+  renderMonthTabs(proj);
+  renderSummaryStrip(proj);
+  renderTableTrafego(proj);
+  renderTableFunil(proj);
+  renderKanban(proj);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SUMMARY STRIP
+// ══════════════════════════════════════════════════════════════
+function renderSummaryStrip(proj){
+  const ym=UI[proj].ym;
+  const days=daysInMonth(ym);
+  // Acumuladores de totais
+  let totalInv=0,totalFat=0,totalLuc=0,totalVendas=0,totalCk=0,totalCliques=0;
+  // Acumuladores de médias (só dias preenchidos)
+  let sumRoas=0,nRoas=0,sumCpc=0,nCpc=0,sumCpa=0,nCpa=0,sumCtr=0,nCtr=0;
+  let sumPR=0,nPR=0,sumRet=0,nRet=0,sumCvsl=0,nCvsl=0,sumCck=0,nCck=0;
+  let diasPreenchidos=0;
+
+  for(let d=1;d<=days;d++){
+    const day=getDay(proj,ym,d);
+    const inv=day.investimento||0;
+    const fat=day.faturamento||0;
+    const luc=day.lucro||0;
+    const vendas=day.vendas||0;
+    const cliques=day.cliques||0;
+    const ck=day.checkout||0;
+    const impr=day.impressoes||0;
+
+    if(inv>0||fat>0||vendas>0) diasPreenchidos++;
+
+    totalInv+=inv; totalFat+=fat; totalLuc+=luc;
+    totalVendas+=vendas; totalCk+=ck; totalCliques+=cliques;
+
+    // Médias por dia preenchido
+    if(inv&&fat){ sumRoas+=fat/inv; nRoas++; }
+    if(inv&&cliques){ sumCpc+=inv/cliques; nCpc++; }
+    if(inv&&vendas){ sumCpa+=inv/vendas; nCpa++; }
+    if(impr&&cliques){ sumCtr+=cliques/impr*100; nCtr++; }
+    if(day.play_rate!==undefined){ sumPR+=day.play_rate; nPR++; }
+    if(day.retencao!==undefined){ sumRet+=day.retencao; nRet++; }
+    if(day.conv_vsl!==undefined){ sumCvsl+=day.conv_vsl; nCvsl++; }
+    if(day.conv_ck!==undefined){ sumCck+=day.conv_ck; nCck++; }
+  }
+
+  const avgRoas=nRoas?(sumRoas/nRoas).toFixed(2)+'x':'—';
+  const avgCpc=nCpc?'R$'+(sumCpc/nCpc).toFixed(2):'—';
+  const avgCpa=nCpa?'R$'+(sumCpa/nCpa).toFixed(2):'—';
+  const avgCtr=nCtr?(sumCtr/nCtr).toFixed(2)+'%':'—';
+  const avgPR=nPR?(sumPR/nPR).toFixed(1)+'%':'—';
+  const avgRet=nRet?(sumRet/nRet).toFixed(1)+'%':'—';
+  const avgCvsl=nCvsl?(sumCvsl/nCvsl).toFixed(1)+'%':'—';
+  const avgCck=nCck?(sumCck/nCck).toFixed(1)+'%':'—';
+  const roi=totalInv&&totalFat?((totalFat-totalInv)/totalInv*100).toFixed(1)+'%':'—';
+  const roasN=parseFloat(avgRoas);
+
+  const el=document.getElementById('strip-'+proj);
+  const ms=document.getElementById('msum-'+proj);
+  ms.textContent=ymLabel(ym)+(diasPreenchidos?` — ${diasPreenchidos} dias preenchidos`:'');
+
+  const cards=[
+    {lbl:'Faturamento total', val:totalFat?'R$ '+Number(totalFat).toLocaleString('pt-BR'):'—', cls:totalFat?'g':'', sub:'soma do mês'},
+    {lbl:'Lucro total',       val:totalLuc?'R$ '+Number(totalLuc).toLocaleString('pt-BR'):'—', cls:totalLuc>0?'g':totalLuc<0?'r':'', sub:'soma do mês'},
+    {lbl:'Investimento total',val:totalInv?'R$ '+Number(totalInv).toLocaleString('pt-BR'):'—', cls:'', sub:'soma do mês'},
+    {lbl:'ROAS médio',        val:avgRoas, cls:roasN>=2?'g':roasN>=1?'a':'r', sub:'média diária'},
+    {lbl:'ROI',               val:roi, cls:parseFloat(roi)>=0?'g':'r', sub:'mês inteiro'},
+    {lbl:'Vendas totais',     val:totalVendas||'—', cls:'', sub:'soma do mês'},
+    {lbl:'CPA médio',         val:avgCpa, cls:'', sub:'média diária'},
+    {lbl:'CPC médio',         val:avgCpc, cls:'', sub:'média diária'},
+    {lbl:'CTR médio',         val:avgCtr, cls:'', sub:'média diária'},
+    {lbl:'Play rate médio',   val:avgPR, cls:parseFloat(avgPR)>=55?'g':'a', sub:'média do funil'},
+    {lbl:'Retenção média',    val:avgRet, cls:parseFloat(avgRet)>=35?'g':'a', sub:'média do funil'},
+    {lbl:'Conv. VSL média',   val:avgCvsl, cls:parseFloat(avgCvsl)>=8?'g':'a', sub:'média do funil'},
+  ];
+
+  el.innerHTML=cards.map(k=>`<div class="scard">
+    <div class="scard-lbl">${k.lbl}</div>
+    <div class="scard-val ${k.cls}">${k.val}</div>
+    <div class="scard-sub">${k.sub}</div>
+  </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER TABLE TRÁFEGO
+// ══════════════════════════════════════════════════════════════
+function renderTableTrafego(proj){
+  const ym=UI[proj].ym;
+  const days=daysInMonth(ym);
+  const todayYM=curYM();
+  const todayD=curDay();
+
+  // HEADER
+  const allCols=[...COLS_TRAFEGO,...COLS_RESULTADO,...COLS_CALC];
+  let thead='<thead><tr><th>Dia</th>';
+  COLS_TRAFEGO.forEach((c,i)=>{
+    thead+=`<th${i===0?' class="sec-start"':''}>${c.lbl}</th>`;
+  });
+  // resultados
+  thead+=`<th class="sec-start">${COLS_RESULTADO[0].lbl}</th><th>${COLS_RESULTADO[1].lbl}</th>`;
+  // calculadas
+  thead+=`<th class="sec-start">`;
+  COLS_CALC.forEach((c,i)=>{
+    if(i>0) thead+=`<th>`;
+    thead+=`${c.lbl}</th>`;
+  });
+  thead+='</tr></thead>';
+
+  // BODY
+  let tbody='<tbody>';
+  for(let d=1;d<=days;d++){
+    const day=getDay(proj,ym,d);
+    const dow=dayDow(ym,d);
+    const isToday=ym===todayYM&&d===todayD;
+    const [y,m]=ym.split('-').map(Number);
+    const dtStr=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    tbody+=`<tr${isToday?' class="today"':''}><td onclick="scrollFunil('${proj}',${d})">${DIAS_PT[dow]} ${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}</td>`;
+
+    COLS_TRAFEGO.forEach((c,i)=>{
+      tbody+=`<td${i===0?' class="sec-start"':''}><input class="cell-inp" type="number" step="any" min="0"
+        value="${day[c.key]!==undefined?day[c.key]:''}"
+        placeholder="—"
+        data-proj="${proj}" data-ym="${ym}" data-day="${d}" data-key="${c.key}"
+        oninput="onInput(this)"></td>`;
+    });
+
+    // resultado
+    COLS_RESULTADO.forEach((c,i)=>{
+      tbody+=`<td${i===0?' class="sec-start"':''}><input class="cell-inp" type="number" step="any"
+        value="${day[c.key]!==undefined?day[c.key]:''}"
+        placeholder="—"
+        data-proj="${proj}" data-ym="${ym}" data-day="${d}" data-key="${c.key}"
+        oninput="onInput(this)"></td>`;
+    });
+
+    // calculadas
+    COLS_CALC.forEach((c,i)=>{
+      const val=c.fn(day);
+      let cls='cell-calc';
+      if(c.key==='roas'){ const n=parseFloat(val); cls+= n>=2?' good':n>=1?' warn':' bad'; }
+      if(c.key==='roi'){ const n=parseFloat(val); cls+= n>=0?' good':' bad'; }
+      tbody+=`<td${i===0?' class="sec-start"':''}><div class="${cls}" id="calc-${proj}-${ym}-${d}-${c.key}">${val}</div></td>`;
+    });
+    tbody+='</tr>';
+  }
+
+  // TOTALS
+  let tfoot='<tfoot><tr><td>Total do mês</td>';
+  COLS_TRAFEGO.forEach((c,i)=>{
+    let sum=0;
+    for(let d=1;d<=days;d++){sum+=(getDay(proj,ym,d)[c.key]||0);}
+    const fmt=sum?Number(sum).toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
+    tfoot+=`<td${i===0?' class="sec-start"':''}><div class="cell-calc">${fmt}</div></td>`;
+  });
+  let totInv=0,totFat=0,totLuc=0;
+  for(let d=1;d<=days;d++){totInv+=(getDay(proj,ym,d).investimento||0);totFat+=(getDay(proj,ym,d).faturamento||0);totLuc+=(getDay(proj,ym,d).lucro||0);}
+  tfoot+=`<td class="sec-start"><div class="cell-calc${totFat?' good':''}">${totFat?'R$ '+Number(totFat).toLocaleString('pt-BR'):'—'}</div></td>`;
+  tfoot+=`<td><div class="cell-calc${totLuc>0?' good':totLuc<0?' bad':''}">${totLuc?'R$ '+Number(totLuc).toLocaleString('pt-BR'):'—'}</div></td>`;
+  const roasT=totInv&&totFat?(totFat/totInv).toFixed(2)+'x':'—';
+  tfoot+=`<td class="sec-start"><div class="cell-calc">—</div></td><td><div class="cell-calc">—</div></td><td><div class="cell-calc">—</div></td><td><div class="cell-calc">—</div></td><td><div class="cell-calc">—</div></td>`;
+  tfoot+=`<td><div class="cell-calc${parseFloat(roasT)>=2?' good':''}">${roasT}</div></td>`;
+  const roiT=totInv&&totFat?((totFat-totInv)/totInv*100).toFixed(1)+'%':'—';
+  tfoot+=`<td><div class="cell-calc${parseFloat(roiT)>=0?' good':' bad'}">${roiT}</div></td>`;
+  tfoot+='</tr></tfoot>';
+
+  tbody+='</tbody>';
+  document.getElementById('tbl-trafego-'+proj).innerHTML=thead+tbody+tfoot;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER TABLE FUNIL
+// ══════════════════════════════════════════════════════════════
+function renderTableFunil(proj){
+  const ym=UI[proj].ym;
+  const days=daysInMonth(ym);
+  const todayYM=curYM();
+  const todayD=curDay();
+
+  let thead='<thead><tr><th>Dia</th>';
+  COLS_FUNIL.forEach(c=>{ thead+=`<th>${c.lbl}</th>`; });
+  // dicas col
+  thead+=`<th>Status do funil</th></tr></thead>`;
+
+  let tbody='<tbody>';
+  const [y,m]=ym.split('-').map(Number);
+  for(let d=1;d<=days;d++){
+    const day=getDay(proj,ym,d);
+    const dow=dayDow(ym,d);
+    const isToday=ym===todayYM&&d===todayD;
+    tbody+=`<tr${isToday?' class="today"':''}><td>${DIAS_PT[dow]} ${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}</td>`;
+    let issues=[];
+    COLS_FUNIL.forEach(c=>{
+      const val=day[c.key]!==undefined?day[c.key]:'';
+      const pct=parseFloat(val)||0;
+      const isLow=val!==''&&pct<c.bench;
+      tbody+=`<td><input class="cell-inp" type="number" step="0.1" min="0" max="100"
+        value="${val}" placeholder="—"
+        data-proj="${proj}" data-ym="${ym}" data-day="${d}" data-key="${c.key}"
+        oninput="onInput(this)"
+        style="${isLow?'color:var(--amber)':val!==''?'color:var(--green)':''}">
+        </td>`;
+      if(isLow) issues.push(c.lbl.replace(' (%)',''));
+    });
+    const statusHtml=issues.length
+      ? `<div class="cell-calc" style="color:var(--amber);font-size:11px;justify-content:flex-start;">⚡ ${issues.join(', ')}</div>`
+      : `<div class="cell-calc" style="color:var(--txt3);font-size:11px;justify-content:flex-start;">${[...COLS_FUNIL].every(c=>day[c.key]!==undefined)?'✓ OK':'—'}</div>`;
+    tbody+=`<td>${statusHtml}</td></tr>`;
+  }
+
+  // Totals (médias)
+  let tfoot='<tfoot><tr><td>Média do mês</td>';
+  COLS_FUNIL.forEach(c=>{
+    let sum=0,n=0;
+    for(let d=1;d<=days;d++){const v=getDay(proj,ym,d)[c.key];if(v!==undefined){sum+=v;n++;}}
+    const avg=n?(sum/n).toFixed(1)+'%':'—';
+    const isLow=n&&parseFloat(avg)<c.bench;
+    tfoot+=`<td><div class="cell-calc${isLow?' warn':n?' good':''}">${avg}</div></td>`;
+  });
+  tfoot+=`<td><div class="cell-calc" style="color:var(--txt3);font-size:11px;justify-content:flex-start;">Médias do mês</div></td>`;
+  tfoot+='</tr></tfoot></tbody>';
+
+  document.getElementById('tbl-funil-'+proj).innerHTML=thead+tbody+tfoot;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INPUT HANDLER
+// ══════════════════════════════════════════════════════════════
+function onInput(inp){
+  const {proj,ym,day,key}=inp.dataset;
+  const val=parseFloat(inp.value)||0;
+  setDay(proj,ym,parseInt(day),key,val);
+  // update calc cells
+  const dayData=getDay(proj,ym,parseInt(day));
+  COLS_CALC.forEach(c=>{
+    const cell=document.getElementById(`calc-${proj}-${ym}-${day}-${c.key}`);
+    if(cell){
+      const v=c.fn(dayData);
+      cell.textContent=v;
+      cell.className='cell-calc';
+      if(c.key==='roas'){const n=parseFloat(v);cell.className+= n>=2?' good':n>=1?' warn':' bad';}
+      if(c.key==='roi'){const n=parseFloat(v);cell.className+= n>=0?' good':' bad';}
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SALVAR
+// ══════════════════════════════════════════════════════════════
+function salvarTudo(proj){
+  saveState();
+  renderMonthTabs(proj);
+  renderSummaryStrip(proj);
+  toast('✓ Dados salvos com sucesso!', true);
+}
+
+function scrollFunil(proj,d){ /* future: scroll to same day in funil table */ }
+
+// ══════════════════════════════════════════════════════════════
+//  KANBAN
+// ══════════════════════════════════════════════════════════════
+function renderKanban(proj){
+  const el=document.getElementById('kb-'+proj);
+  const tasks=S[proj].tasks||[];
+  el.innerHTML=KCOLS.map((col,ci)=>{
+    const ct=tasks.filter(t=>(t.col||0)===ci);
+    return `<div class="kcol">
+      <div class="kcol-head"><div class="kcol-title">${col}</div><div class="kcol-cnt">${ct.length}</div></div>
+      <div class="kcol-body">
+        ${ct.map(t=>`<div class="kcard">
+          <div class="kcard-txt">${esc(t.text)}</div>
+          <div class="kcard-meta"><span class="tag t-${t.owner}">${OWNER_LBL[t.owner]||t.owner}</span><span class="tag t-${t.fase}">${t.fase}</span></div>
+          <div class="kcard-acts">
+            ${ci>0?`<button class="cbtn" onclick="mover('${proj}','${t.id}',-1)">←</button>`:''}
+            ${ci<3?`<button class="cbtn" onclick="mover('${proj}','${t.id}',1)">→</button>`:''}
+            <button class="cbtn cbtn-del" onclick="delTask('${proj}','${t.id}')">✕</button>
+          </div>
+        </div>`).join('')||`<div style="font-size:12px;color:var(--txt3);padding:4px 0;">Sem tasks</div>`}
+      </div></div>`;
+  }).join('');
+}
+
+function addTask(proj){
+  const inp=document.getElementById('ti-'+proj);
+  const text=inp.value.trim();
+  if(!text){toast('Digite a task');return;}
+  S[proj].tasks.push({id:Date.now().toString(),text,owner:document.getElementById('to-'+proj).value,fase:document.getElementById('tf-'+proj).value,col:0});
+  inp.value='';saveState();renderKanban(proj);
+}
+function mover(proj,id,dir){
+  const t=S[proj].tasks.find(t=>t.id===id);if(!t)return;
+  t.col=Math.max(0,Math.min(3,(t.col||0)+dir));saveState();renderKanban(proj);
+}
+function delTask(proj,id){
+  S[proj].tasks=S[proj].tasks.filter(t=>t.id!==id);saveState();renderKanban(proj);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  OVERVIEW
+// ══════════════════════════════════════════════════════════════
+function renderOverview(){
+  const ym=curYM();
+  document.getElementById('ov-lbl').textContent=`${ymLabel(ym)} — comparativo dos três projetos`;
+
+  document.getElementById('ov-cards').innerHTML=PROJS.map(proj=>{
+    const days=daysInMonth(ym);
+    let inv=0,fat=0,luc=0,vendas=0,cpc_sum=0,cpc_n=0;
+    for(let d=1;d<=days;d++){
+      const day=getDay(proj,ym,d);
+      inv+=(day.investimento||0);fat+=(day.faturamento||0);luc+=(day.lucro||0);vendas+=(day.vendas||0);
+      if(day.investimento&&day.cliques){cpc_sum+=day.investimento/day.cliques;cpc_n++;}
+    }
+    const roas=inv&&fat?(fat/inv).toFixed(2)+'x':'—';
+    const kpis=[
+      {lbl:'Faturamento',val:fat?'R$ '+Number(fat).toLocaleString('pt-BR'):'—',g:true},
+      {lbl:'Lucro',val:luc?'R$ '+Number(luc).toLocaleString('pt-BR'):'—',g:luc>0},
+      {lbl:'ROAS',val:roas,g:parseFloat(roas)>=2},
+      {lbl:'Vendas',val:vendas||'—',g:true},
+    ];
+    return `<div class="ov-card">
+      <div class="ov-top"><div class="ov-dot" style="background:${PROJ_COLOR[proj]}"></div><div class="ov-nm">${PROJ_LABEL[proj]}</div></div>
+      <div class="ov-kpis">${kpis.map(k=>`<div><div class="ov-kpi-lbl">${k.lbl}</div><div class="ov-kpi-val" style="${k.g&&k.val!=='—'?'color:var(--green)':''}">${k.val}</div></div>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // Funil — média do mês
+  document.getElementById('ov-funnels').innerHTML=PROJS.map(proj=>{
+    const days=daysInMonth(ym);
+    return `<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px 18px;">
+      <div style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;gap:7px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${PROJ_COLOR[proj]};display:inline-block;"></span>${PROJ_LABEL[proj]} — médias do mês
+      </div>
+      ${COLS_FUNIL.map(f=>{
+        let sum=0,n=0;
+        for(let d=1;d<=days;d++){const v=getDay(proj,ym,d)[f.key];if(v!==undefined){sum+=v;n++;}}
+        const avg=n?(sum/n).toFixed(1):0;
+        const pct=parseFloat(avg)||0;
+        const color=pct>=f.bench?'var(--green)':pct>=f.bench*0.7?'var(--amber)':'var(--red)';
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="font-size:12px;color:var(--txt2);width:140px;flex-shrink:0;">${f.lbl.replace(' (%)','')}</div>
+          <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:3px;"></div></div>
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:${color};width:42px;text-align:right;">${n?avg+'%':'—'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('ov-tasks').innerHTML=PROJS.map(proj=>{
+    const open=(S[proj].tasks||[]).filter(t=>(t.col||0)<2);
+    return `<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px 18px;">
+      <div style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:7px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${PROJ_COLOR[proj]};display:inline-block;"></span>${PROJ_LABEL[proj]}
+      </div>
+      ${open.length?open.map(t=>`<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--brd);">
+        <div style="flex:1;font-size:12px;color:var(--txt);">${esc(t.text)}</div>
+        <span class="tag t-${t.owner}" style="font-size:9px;">${OWNER_LBL[t.owner]}</span>
+      </div>`).join(''):'<div style="font-size:12px;color:var(--txt3);padding:4px 0;">Sem tasks abertas</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,ok){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(ok?' ok':'')+' show';
+  setTimeout(()=>{t.className='toast'+(ok?' ok':'');},2600);
+}
+
+// AUTO-SAVE a cada 30s
+setInterval(()=>{saveState();},30000);
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+(function init(){
+  loadState();
+  PROJS.forEach(proj=>{
+    buildPanel(proj);
+    renderProjectPanel(proj);
+  });
+})();
+</script>
+</body>
+</html>
